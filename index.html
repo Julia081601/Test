@@ -5,134 +5,190 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>的 vs 得 大戰</title>
     <style>
-        :root {
-            --primary-color: #3498db;
-            --success-color: #2ecc71;
-            --error-color: #e74c3c;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #2c3e50;
-        }
-        /*banner*/
-        .home-banner {
-            width: 100%;           /* 寬度隨容器縮放 */
-            max-width: 450px;      /* 限制最大寬度，避免在電腦上太大 */
-            height: auto;          /* 高度自動，保持比例 */
-            display: block;        /* 區塊顯示 */
-            margin: 0 auto 20px;   /* 置中，並與下方文字保持 20px 距離 */
-            border-radius: 12px;   /* 增加一點圓角，更有設計感 */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* 輕微陰影 */
-        }
+    :root {
+        /* 定義水火核心配色 */
+        --water-blue: #1e3a8a;      /* 深藍色 */
+        --water-cyan: #22d3ee;      /* 亮青色 */
+        --fire-orange: #f97316;     /* 橙紅色 */
+        --fire-yellow: #facc15;     /* 檸檬黃 */
+        --success-color: #2ecc71;
+        --error-color: #e74c3c;
+        --card-bg: rgba(255, 255, 255, 0.95);
+    }
 
-        body {
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+    body {
+        font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+        /* 遊戲介面背景：水火能量交融漸層 */
+        background: linear-gradient(135deg, #1e40af 0%, #f97316 100%);
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
 
-        #game-container {
-            width: 90%;
-            max-width: 600px;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            position: relative;
-        }
+    #game-container {
+        width: 90%;
+        max-width: 600px;
+        background: var(--card-bg);
+        padding: 40px 30px;
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        text-align: center;
+        position: relative;
+    }
 
-        /* Home & Result Screens */
-        .screen { display: none; }
-        .screen.active { display: block; animation: fadeIn 0.5s; }
+    /* 螢幕切換動畫 */
+    .screen { display: none; }
+    .screen.active { display: block; animation: fadeIn 0.5s ease-out; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
 
-        h1 { color: var(--primary-color); margin-bottom: 30px; }
+    /* 1. 首頁 (Home Screen) 樣式 */
+    .home-banner {
+        width: 100%;
+        max-width: 450px;
+        border-radius: 12px;
+        margin-bottom: 25px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
 
-        .btn-level {
-            display: block;
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            font-size: 1.5rem;
-            border: 2px solid var(--primary-color);
-            background: none;
-            color: var(--primary-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
+    /* 遊戲標題漸層與發光效果 */
+    .game-title {
+        font-size: 3rem;
+        font-weight: 900;
+        margin-bottom: 20px;
+        letter-spacing: 2px;
+    }
+    .title-de { /* 「的」：水 */
+        color: var(--water-blue);
+        text-shadow: 0 0 10px #fff, 0 0 20px var(--water-cyan);
+    }
+    .title-vs { color: #333; font-size: 1.5rem; margin: 0 10px; }
+    .title-dei { /* 「得」：火 */
+        color: var(--fire-orange);
+        text-shadow: 0 0 10px #fff, 0 0 20px var(--fire-yellow);
+    }
 
-        .btn-level:hover {
-            background: var(--primary-color);
-            color: white;
-        }
+    /* 難度按鈕樣式 */
+    .btn-level {
+        display: block;
+        width: 100%;
+        padding: 18px;
+        margin: 15px 0;
+        font-size: 1.4rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: white;
+    }
+    /* 初級：深藍變亮青 */
+    .btn-basic {
+        background-color: var(--water-blue);
+    }
+    .btn-basic:hover {
+        background-color: var(--water-cyan);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(34, 211, 238, 0.4);
+    }
+    /* 中級：橙紅變檸檬黃 */
+    .btn-intermediate {
+        background-color: var(--fire-orange);
+    }
+    .btn-intermediate:hover {
+        background-color: var(--fire-yellow);
+        color: #333;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(250, 204, 21, 0.4);
+    }
 
-        /* Game Elements */
-        #timer-bar-container {
-            width: 100%;
-            height: 10px;
-            background: #eee;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
+    /* 2. 遊戲介面 (Game Screen) */
+    .question-box {
+        background: #fdfdfd;
+        padding: 30px;
+        border-radius: 15px;
+        margin: 30px 0;
+        /* 雙色並行線邊框設計 */
+        border: 4px solid transparent;
+        border-image: linear-gradient(to right, var(--water-blue) 50%, var(--fire-orange) 50%);
+        border-image-slice: 1;
+    }
 
-        #timer-bar {
-            width: 100%;
-            height: 100%;
-            background: var(--primary-color);
-            transition: width 0.1s linear;
-        }
+    .question-text {
+        font-size: 2rem;
+        color: #000;
+        line-height: 1.6;
+    }
 
-        .question-text {
-            font-size: 2rem;
-            margin: 40px 0;
-            line-height: 3rem;
-            min-height: 120px;
-        }
+    /* 選項按鈕始終保持顏色 */
+    .option-btn {
+        padding: 20px;
+        font-size: 1.6rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: transform 0.1s;
+        color: white;
+    }
+    .btn-a { background-color: var(--water-blue); } /* A. 的 為藍色 */
+    .btn-b { background-color: var(--fire-orange); } /* B. 得 為紅色/橙色 */
+    .option-btn:active { transform: scale(0.95); }
 
-        ruby { font-size: 1.8rem; }
-        rt { font-size: 0.8rem; color: #7f8c8d; font-weight: normal; }
+    /* 3. 結果介面 (Result Screen) */
+    #result-screen {
+        position: relative;
+        padding: 40px;
+        z-index: 1;
+    }
+    /* 背景圖透明度與遮罩處理 */
+    #result-screen::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('battle1.jpg') no-repeat center center;
+        background-size: cover;
+        opacity: 0.5;
+        z-index: -1;
+        border-radius: 20px;
+    }
+    .overlay-mask {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(50, 50, 50, 0.4);
+        z-index: -1;
+        border-radius: 20px;
+    }
 
-        .options-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
+    /* 統計文字大小調整 */
+    .correct-text {
+        font-size: 3rem;
+        color: #00ff00; /* 亮綠色 */
+        font-weight: 900;
+    }
+    .wrong-text {
+        font-size: 1.5rem;
+        color: #ff4d4d; /* 紅色 */
+    }
 
-        .option-btn {
-            padding: 20px;
-            font-size: 1.5rem;
-            border: none;
-            border-radius: 15px;
-            background: #ecf0f1;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
-        }
-
-        .option-btn:active { transform: scale(0.95); }
-
-        /* Feedback Colors */
-        .correct { background-color: var(--success-color) !important; color: white; }
-        .wrong { background-color: var(--error-color) !important; color: white; }
-
-        .stats { font-size: 1.2rem; margin: 20px 0; }
-        
-        @media (max-width: 480px) {
-            .question-text { font-size: 1.5rem; }
-            ruby { font-size: 1.4rem; }
-        }
-    </style>
+    /* 其他元件 */
+    #timer-bar-container {
+        width: 100%; height: 12px; background: #eee; border-radius: 6px; overflow: hidden;
+    }
+    #timer-bar {
+        width: 100%; height: 100%; background: var(--water-cyan); transition: width 0.1s linear;
+    }
+    
+    /* 修正反饋顏色 */
+    .correct-flash { background-color: var(--success-color) !important; box-shadow: 0 0 20px var(--success-color); }
+    .wrong-flash { background-color: var(--error-color) !important; box-shadow: 0 0 20px var(--error-color); }
+</style>
 </head>
 <body>
 <audio id="sound-correct" src="correct.mp3" preload="auto"></audio>
@@ -141,30 +197,41 @@
     
     <div id="home-screen" class="screen active">
         <img src="battle1.jpg" alt="遊戲封面圖" class="home-banner">
-        <h1>的 vs 得 大戰</h1>
+        <h1 class="game-title">
+    <span class="title-de">的</span>
+    <span class="title-vs">vs</span>
+    <span class="title-dei">得</span>
+</h1>
         <h3>請選擇您的程度：</h3>
-        <button class="btn-level" onclick="startGame('basic')">初級  <br><small>有拼音 / Pinyin</small></button>
-        <button class="btn-level" onclick="startGame('intermediate')">中級 <br><small>無拼音 / No Pinyin</small></button>
+        <button class="btn-level btn-basic" onclick="startGame('basic')">初級 <br><small>有拼音 / Pinyin</small></button>
+
+<button class="btn-level btn-intermediate" onclick="startGame('intermediate')">中級 <br><small>無拼音 / No Pinyin</small></button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="timer-bar-container"><div id="timer-bar"></div></div>
-        <div id="progress-text">第 1 / 10 題</div>
+    <div id="timer-bar-container"><div id="timer-bar"></div></div>
+    <div id="progress-text">第 1 / 10 題</div>
+    
+    <div class="question-box">
         <div id="question-area" class="question-text"></div>
-        <div class="options-container">
-            <button class="option-btn" onclick="checkAnswer('A')">A. 的</button>
-            <button class="option-btn" onclick="checkAnswer('B')">B. 得</button>
-        </div>
     </div>
 
-    <div id="result-screen" class="screen">
-        <h1>測驗結果</h1>
-        <div class="stats">
-            <p>答對: <span id="correct-count" style="color:var(--success-color); font-weight:bold;">0</span></p>
-            <p>答錯: <span id="wrong-count" style="color:var(--error-color); font-weight:bold;">0</span></p>
-        </div>
-        <button class="btn-level" onclick="location.reload()">重新開始</button>
+    <div class="options-container">
+        <button class="option-btn btn-a" onclick="checkAnswer('A')">A. 的</button>
+        <button class="option-btn btn-b" onclick="checkAnswer('B')">B. 得</button>
     </div>
+</div>
+
+    <div id="result-screen" class="screen">
+    <div class="overlay-mask"></div> 
+
+    <h1>測驗結果</h1>
+    <div class="stats">
+        <p>答對: <span id="correct-count" class="correct-text">0</span></p>
+        <p>答錯: <span id="wrong-count" class="wrong-text">0</span></p>
+    </div>
+    <button class="btn-level" onclick="location.reload()">重新開始</button>
+</div>
 </div>
 
 <script>
