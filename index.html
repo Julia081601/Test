@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>的 vs 得 大戰</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --success-color: #2ecc71;
+            --error-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+        }
+        /*banner*/
+        .home-banner {
+            width: 100%;           /* 寬度隨容器縮放 */
+            max-width: 450px;      /* 限制最大寬度，避免在電腦上太大 */
+            height: auto;          /* 高度自動，保持比例 */
+            display: block;        /* 區塊顯示 */
+            margin: 0 auto 20px;   /* 置中，並與下方文字保持 20px 距離 */
+            border-radius: 12px;   /* 增加一點圓角，更有設計感 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* 輕微陰影 */
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        /* Home & Result Screens */
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { color: var(--primary-color); margin-bottom: 30px; }
+
+        .btn-level {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.5rem;
+            border: 2px solid var(--primary-color);
+            background: none;
+            color: var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-level:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Game Elements */
+        #timer-bar-container {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.1s linear;
+        }
+
+        .question-text {
+            font-size: 2rem;
+            margin: 40px 0;
+            line-height: 3rem;
+            min-height: 120px;
+        }
+
+        ruby { font-size: 1.8rem; }
+        rt { font-size: 0.8rem; color: #7f8c8d; font-weight: normal; }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .option-btn {
+            padding: 20px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 15px;
+            background: #ecf0f1;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .option-btn:active { transform: scale(0.95); }
+
+        /* Feedback Colors */
+        .correct { background-color: var(--success-color) !important; color: white; }
+        .wrong { background-color: var(--error-color) !important; color: white; }
+
+        .stats { font-size: 1.2rem; margin: 20px 0; }
+        
+        @media (max-width: 480px) {
+            .question-text { font-size: 1.5rem; }
+            ruby { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<audio id="sound-correct" src="correct.mp3" preload="auto"></audio>
+<audio id="sound-wrong" src="wrong.mp3" preload="auto"></audio>
+<div id="game-container">
+    
+    <div id="home-screen" class="screen active">
+        <img src="battle1.jpg" alt="遊戲封面圖" class="home-banner">
+        <h1>的 vs 得 大戰</h1>
+        <h3>請選擇您的程度：</h3>
+        <button class="btn-level" onclick="startGame('basic')">初級  <br><small>有拼音 / Pinyin</small></button>
+        <button class="btn-level" onclick="startGame('intermediate')">中級 <br><small>無拼音 / No Pinyin</small></button>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div id="timer-bar-container"><div id="timer-bar"></div></div>
+        <div id="progress-text">第 1 / 10 題</div>
+        <div id="question-area" class="question-text"></div>
+        <div class="options-container">
+            <button class="option-btn" onclick="checkAnswer('A')">A. 的</button>
+            <button class="option-btn" onclick="checkAnswer('B')">B. 得</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h1>測驗結果</h1>
+        <div class="stats">
+            <p>答對: <span id="correct-count" style="color:var(--success-color); font-weight:bold;">0</span></p>
+            <p>答錯: <span id="wrong-count" style="color:var(--error-color); font-weight:bold;">0</span></p>
+        </div>
+        <button class="btn-level" onclick="location.reload()">重新開始</button>
+    </div>
+</div>
+
+<script>
+    const data = {
+        basic: [
+            { q: [["這", "zhè"], ["是", "shì"], ["我", "wǒ"], ["___", ""], ["書", "shū"], ["。", ""]], a: "A", raw: "這是我 的 書" },
+            { q: [["他", "tā"], ["跑", "pǎo"], ["___", ""], ["很", "hěn"], ["快", "kuài"], ["。", ""]], a: "B", raw: "他跑 得 很快" },
+            { q: [["漂", "piào"], ["亮", "liang"], ["___", ""], ["花", "huā"], ["在", "zài"], ["桌", "zhuō"], ["上", "shàng"], ["。", ""]], a: "A", raw: "漂亮的 花 在 桌上" },
+            { q: [["妹", "mèi"], ["妹", "mei"], ["跳", "tiào"], ["___", ""], ["很", "hěn"], ["高", "gāo"], ["。", ""]], a: "B", raw: "妹妹跳 得 很高" },
+            { q: [["你", "nǐ"], ["寫", "xiě"], ["___", ""], ["字", "zì"], ["很", "hěn"],["漂", "piào"],["亮", "liàng"], ["。", ""]], a: "A", raw: "你寫 的 字 很漂亮" },
+            { q: [["他", "tā"], ["說", "shuō"], ["中", "zhōng"], ["文", "wén"], ["說", "shuō"], ["___", ""], ["很", "hěn"], ["好", "hǎo"], ["。", ""]], a: "B", raw: "他說 中文 說得 很好" },
+            { q: [["那", "nèi"], ["個", "ge"], ["紅", "hóng"], ["色", "sè"], ["___", ""], ["車", "chē"], ["是", "shì"], ["誰", "shéi"], ["的", "de"], ["？", ""]], a: "A", raw: "那個 紅色的 車 是誰的" },
+            { q: [["哥", "gē"], ["哥", "ge"], ["唱", "chàng"], ["歌", "gē"], ["唱", "chàng"], ["___", ""], ["很", "hěn"], ["大", "dà"], ["聲", "shēng"], ["。", ""]], a: "B", raw: "哥哥 唱歌 唱得 很大聲" },
+            { q: [["我", "wǒ"], ["___", ""], ["媽", "mā"], ["媽", "ma"], ["是", "shì"], ["老", "lǎo"], ["師", "shī"], ["。", ""]], a: "A", raw: "我的 媽媽 是 老師" },
+            { q: [["弟", "dì"], ["弟", "di"], ["今", "jīn"], ["天", "tiān"], ["起", "qǐ"], ["___", ""], ["很", "hěn"], ["晚", "wǎn"], ["。", ""]], a: "B", raw: "弟弟 今天 起得 很晚" }, // 這裡原本是全形逗號，已修正
+            { q: [["她", "tā"], ["買", "mǎi"], ["___", ""], ["件", "jiàn"], ["衣", "yī"], ["服", "fu"], ["很", "hěn"], ["貴", "guì"], ["。", ""]], a: "A", raw: "她買 的 件衣服 很貴" },
+            { q: [["鳥", "niǎo"], ["飛", "fēi"], ["___", ""], ["很", "hěn"], ["高", "gāo"], ["。", ""]], a: "B", raw: "鳥飛 得 很高" },
+            { q: [["好", "hǎo"], ["看", "kàn"], ["___", ""], ["書", "shū"], ["在", "zài"], ["這", "zhè"], ["裡", "lǐ"], ["。", ""]], a: "A", raw: "好看 的 書 在 這裡" },
+            { q: [["他", "tā"], ["走", "zǒu"], ["___", ""], ["太", "tài"], ["慢", "màn"], ["了", "le"], ["。", ""]], a: "B", raw: "他走 得 太慢了" },
+            { q: [["我", "wǒ"], ["喝", "hē"], ["___", ""], ["咖", "kā"], ["啡", "fēi"], ["很", "hěn"], ["苦", "kǔ"], ["。", ""]], a: "A", raw: "我喝 的 咖啡 很苦" },
+            { q: [["小", "xiǎo"], ["狗", "gǒu"], ["吃", "chī"], ["___", ""], ["很", "hěn"], ["多", "duō"], ["。", ""]], a: "B", raw: "小狗吃 得 很多" },
+            { q: [["藍", "lán"], ["色", "sè"], ["___", ""], ["天", "tiān"], ["空", "kōng"], ["很", "hěn"], ["美", "měi"], ["。", ""]], a: "A", raw: "藍色 的 天空 很美" },
+            { q: [["她", "tā"], ["跳", "tiào"], ["舞", "wǔ"], ["跳", "tiào"], ["___", ""], ["很", "hěn"], ["好", "hǎo"], ["。", ""]], a: "B", raw: "她跳舞 跳得 很好" },
+            { q: [["這", "zhè"], ["是", "shì"], ["誰", "shéi"], ["___", ""], ["筆", "bǐ"], ["？", ""]], a: "A", raw: "這是 誰 的 筆" },
+            { q: [["天", "tiān"], ["氣", "qì"], ["變", "biàn"], ["___", ""], ["很", "hěn"], ["冷", "lěng"], ["。", ""]], a: "B", raw: "天氣 變得 很冷" }
+        ],
+        intermediate: [
+            { q: "這是一個非常艱難___決定，你要考慮清楚。", a: "A" },
+            { q: "經理氣___說不出話來，大家都嚇到了。", a: "B" },
+            { q: "只有努力工作___人，才能獲得最後的成功。", a: "A" },
+            { q: "那場音樂會精彩___超出了所有人的想像。", a: "B" },
+            { q: "我沒想到這件事情__後果會這麼嚴重。", a: "A" },
+            { q: "昨晚他睡___很安穩，連雷聲都沒聽見。", a: "B" },
+            { q: "那位戴墨鏡___先生看起來非常神祕。", a: "A" },
+            { q: "老師講解___非常詳細，學生們一下子就懂了。", a: "B" },
+            { q: "為了能在比賽中表現___完美，她每天刻苦練習。", a: "B" },
+            { q: "牆上掛著一張我小時候最喜歡___地圖。", a: "A" }, // 這裡原本是全形逗號，已修正
+            { q: "他高興___跳了起來，因為他贏得了比賽。", a: "B" },
+            { q: "這是一本非常有深度___書，值得你細細品讀。", a: "A" },
+            { q: "小明進步___很快，讓老師和同學都感到驚訝。", a: "B" },
+            { q: "那個穿藍色西裝___律師正準備開庭。", a: "A" },
+            { q: "這場大雨下___太突然了，大家都沒帶傘。", a: "B" },
+            { q: "追求卓越___過程雖然艱辛，但結果是甜蜜的。", a: "A" },
+            { q: "他把客廳收拾___整整齊齊，準備迎接客人。", a: "B" },
+            { q: "媽媽親手做___蛋糕，味道總是特別溫暖。", a: "A" },
+            { q: "這部電影感人___讓觀眾們都流下了眼淚。", a: "B" },
+            { q: "我們應該尊重每個人___隱私和選擇。", a: "A" }
+            
+        ]
+    };
+
+    let currentLevel = '';
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = { correct: 0, wrong: 0 };
+    let timer;
+    let timeLeft = 15;
+    let isTransitioning = false;
+
+    function startGame(level) {
+        currentLevel = level;
+        currentQuestions = shuffleArray([...data[level]]);
+        currentIndex = 0;
+        score = { correct: 0, wrong: 0 };
+        
+        showScreen('game-screen');
+        nextQuestion();
+    }
+
+    function shuffleArray(array) {
+        // Logic to shuffle while ensuring no more than 3 consecutive same answers
+        let shuffled;
+        let valid = false;
+        while (!valid) {
+            shuffled = array.sort(() => Math.random() - 0.5);
+            valid = true;
+            let count = 1;
+            for (let i = 1; i < shuffled.length; i++) {
+                if (shuffled[i].a === shuffled[i-1].a) {
+                    count++;
+                    if (count > 3) { valid = false; break; }
+                } else {
+                    count = 1;
+                }
+            }
+        }
+        return shuffled;
+    }
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function nextQuestion() {
+        if (currentIndex >= 10) {
+            showResult();
+            return;
+        }
+
+        isTransitioning = false;
+        document.querySelectorAll('.option-btn').forEach(b => b.className = 'option-btn');
+        document.getElementById('progress-text').innerText = `第 ${currentIndex + 1} / 10 題`;
+        
+        const qData = currentQuestions[currentIndex];
+        const area = document.getElementById('question-area');
+        area.innerHTML = '';
+
+        // Render Question
+        if (currentLevel === 'basic') {
+            qData.q.forEach(item => {
+                if (item[0] === '___') {
+                    area.innerHTML += `<span style="border-bottom: 2px solid #3498db; padding: 0 10px;">( ? )</span>`;
+                } else {
+                    area.innerHTML += `<ruby>${item[0]}<rt>${item[1]}</rt></ruby>`;
+                }
+            });
+            speak(qData.raw);
+        } else {
+            area.innerText = qData.q.replace('___', '(?)');
+            speak(qData.q.replace('___', '的')); // Đọc mẫu với "de"
+        }
+
+        resetTimer();
+    }
+
+    function resetTimer() {
+        clearInterval(timer);
+        timeLeft = 15;
+        const bar = document.getElementById('timer-bar');
+        bar.style.width = '100%';
+        bar.style.backgroundColor = 'var(--primary-color)';
+
+        timer = setInterval(() => {
+            timeLeft -= 0.1;
+            const percentage = (timeLeft / 15) * 100;
+            bar.style.width = percentage + '%';
+            
+            if (timeLeft <= 3) bar.style.backgroundColor = 'var(--error-color)';
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                checkAnswer(null); // Time's up
+            }
+        }, 100);
+    }
+
+   function checkAnswer(userChoice) {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    clearInterval(timer);
+
+    const correctAns = currentQuestions[currentIndex].a;
+    const btns = document.querySelectorAll('.option-btn');
+    const correctSound = document.getElementById('sound-correct');
+    const wrongSound = document.getElementById('sound-wrong');
+
+    if (userChoice === correctAns) {
+        score.correct++;
+        correctSound.currentTime = 0;
+        correctSound.play();
+        if (userChoice === 'A') btns[0].classList.add('correct');
+        else btns[1].classList.add('correct');
+    } else {
+        score.wrong++;
+        wrongSound.currentTime = 0;
+        wrongSound.play();
+        
+        // 修改這裡：只要不是正確答案（包含選錯或 null），就標示錯誤紅框
+        if (userChoice === 'A') btns[0].classList.add('wrong');
+        else if (userChoice === 'B') btns[1].classList.add('wrong');
+        
+        // 永遠顯示正確答案綠框
+        if (correctAns === 'A') btns[0].classList.add('correct');
+        else btns[1].classList.add('correct');
+    }
+
+    setTimeout(() => {
+        currentIndex++;
+        nextQuestion();
+    }, 800); 
+}
+
+    function showResult() {
+        showScreen('result-screen');
+        document.getElementById('correct-count').innerText = score.correct;
+        document.getElementById('wrong-count').innerText = score.wrong;
+    }
+
+    function speak(text) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'zh-TW';
+        msg.rate = 1.0;
+        window.speechSynthesis.speak(msg);
+    }
+</script>
+
+</body>
+</html>
