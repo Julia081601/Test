@@ -270,7 +270,6 @@
             return;
         }
         isTransitioning = false;
-        // Reset class buttons
         const btns = document.querySelectorAll('.option-btn');
         btns[0].className = 'option-btn btn-a';
         btns[1].className = 'option-btn btn-b';
@@ -284,14 +283,18 @@
         if (currentLevel === 'basic') {
             qData.q.forEach(item => {
                 if (item[0] === '___') {
-                    area.innerHTML += `<span style="border-bottom: 2px solid #3498db; padding: 0 10px;">( ? )</span>`;
+                    area.innerHTML += `<span style="border-bottom: 2px solid #3498db; padding: 0 10px; margin: 0 5px;">( ? )</span>`;
                 } else {
                     area.innerHTML += `<ruby>${item[0]}<rt>${item[1]}</rt></ruby>`;
                 }
             });
             speak(qData.raw);
         } else {
-            area.innerText = qData.q.replace('___', '(?)');
+            const parts = qData.q.split('___');
+            area.innerHTML = parts[0] + 
+                `<span style="border-bottom: 2px solid #3498db; padding: 0 10px; margin: 0 5px;">( ? )</span>` + 
+                parts[1];
+            
             speak(qData.q.replace('___', '的'));
         }
         resetTimer();
